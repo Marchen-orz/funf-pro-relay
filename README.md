@@ -205,6 +205,6 @@ MIT — 见 [LICENSE](LICENSE)。
 - 管理员：**[ADMIN_GUIDE.md](ADMIN_GUIDE.md)**
 - 服务器部署、协议配置、BLE 抓包和开发维护，见 **[USAGE_MANUAL.md](USAGE_MANUAL.md)**。
 
-感谢 Linux.do 社区。
+感谢 Linux.do 社区提供的知识以及技巧。
 
 给我小猫做的。
