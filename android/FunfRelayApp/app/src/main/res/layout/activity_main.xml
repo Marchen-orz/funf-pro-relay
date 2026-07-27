@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/ivBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#1A1A2E"
+        android:scaleType="centerCrop" />
+
+    <!-- 半透明暗色遮罩 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#CC1a1a2e" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="14dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- 标题 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="啵啵贝 Pro · 远程中继"
+                android:textSize="22sp"
+                android:textColor="#FFE0E0"
+                android:gravity="center"
+                android:layout_marginBottom="10dp"
+                android:letterSpacing="0.05"
+                android:textStyle="bold"
+                android:shadowColor="#99000000"
+                android:shadowDx="1"
+                android:shadowDy="2"
+                android:shadowRadius="6" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="8dp">
+
+                <Button
+                    android:id="@+id/btnChooseBackground"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="选择背景"
+                    android:textSize="12sp"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/btn_secondary" />
+
+                <Button
+                    android:id="@+id/btnClearBackground"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:text="清除背景"
+                    android:textSize="12sp"
+                    android:textColor="#FFFFFF"
+                    android:background="@drawable/btn_dark" />
+            </LinearLayout>
+
+            <!-- ===== 状态卡片 ===== -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_bg"
+                android:padding="14dp"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:id="@+id/tvStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="未启动"
+                    android:textSize="14sp"
+                    android:textColor="#FFFFFF"
+                    android:gravity="center"
+                    android:padding="8dp"
+                    android:background="@drawable/status_bg"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- BLE + 电池 + 扫描 -->
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/tvBleState"
+                        android:layout_width="0dp"
+                        android:layout_weight="3"
+                        android:layout_height="wrap_content"
+                        android:text="BLE: --"
+                        android:textSize="12sp"
+                        android:textColor="#FFF"
+                        android:padding="8dp"
+                        android:background="#44FFFFFF"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:id="@+id/tvBattery"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="🔋--"
+                        android:textSize="12sp"
+                        android:textColor="#FFF"
+                        android:padding="8dp"
+                        android:background="#44FFFFFF"
+                        android:gravity="center"
+                        android:layout_marginStart="4dp" />
+
+                    <Button
+                        android:id="@+id/btnScan"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="38dp"
+                        android:text="扫描"
+                        android:textSize="11sp"
+                        android:textColor="#FFF"
+                        android:background="@drawable/btn_accent"
+                        android:layout_marginStart="4dp"
+                        android:enabled="false" />
+                </LinearLayout>
+
+                <!-- 强度显示 -->
+                <TextView
+                    android:id="@+id/tvIntensity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="吮0 · 震0 · 电0 · 入0"
+                    android:textSize="13sp"
+                    android:textColor="#FFCDD2"
+                    android:gravity="center"
+                    android:padding="6dp"
+                    android:layout_marginTop="8dp"
+                    android:background="#33FFFFFF" />
+            </LinearLayout>
+
+            <!-- ===== 配置卡片 ===== -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_bg"
+                android:padding="14dp"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="⚙️ 服务器配置"
+                    android:textSize="14sp"
+                    android:textColor="#FFCCCC"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="服务器"
+                        android:textSize="12sp"
+                        android:textColor="#CCCCCC"
+                        android:gravity="center_vertical" />
+                    <EditText
+                        android:id="@+id/etServer"
+                        android:layout_width="0dp"
+                        android:layout_weight="3"
+                        android:layout_height="42dp"
+                        android:hint="wss://your-domain.com/ws"
+                        android:textColorHint="#888"
+                        android:textColor="#FFF"
+                        android:inputType="textUri"
+                        android:textSize="12sp"
+                        android:background="@drawable/edit_bg"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Token"
+                        android:textSize="12sp"
+                        android:textColor="#CCCCCC"
+                        android:gravity="center_vertical" />
+                    <EditText
+                        android:id="@+id/etToken"
+                        android:layout_width="0dp"
+                        android:layout_weight="3"
+                        android:layout_height="42dp"
+                        android:hint="设备 Token"
+                        android:textColorHint="#888"
+                        android:textColor="#FFF"
+                        android:inputType="textPassword"
+                        android:textSize="12sp"
+                        android:background="@drawable/edit_bg"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ===== 控制按钮 ===== -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp">
+                <Button
+                    android:id="@+id/btnStart"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="46dp"
+                    android:text="▶ 启动中继"
+                    android:textSize="14sp"
+                    android:textColor="#FFF"
+                    android:background="@drawable/btn_primary" />
+                <Button
+                    android:id="@+id/btnStop"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="46dp"
+                    android:text="⏹ 停止"
+                    android:textSize="14sp"
+                    android:textColor="#FFF"
+                    android:background="@drawable/btn_secondary"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+            <!-- ===== 设备列表卡片 ===== -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/card_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📱 附近设备"
+                    android:textSize="14sp"
+                    android:textColor="#FFCCCC"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp" />
+
+                <LinearLayout
+                    android:id="@+id/deviceList"
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="60dp"
+                    android:padding="4dp">
+
+                    <TextView
+                        android:id="@+id/tvDeviceHint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="启动后点击「扫描」"
+                        android:textSize="11sp"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:textColor="#888" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ===== 底部按钮 ===== -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp">
+                <Button
+                    android:id="@+id/btnProbe"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="42dp"
+                    android:text="🔬 协议探测"
+                    android:textSize="12sp"
+                    android:textColor="#FFF"
+                    android:background="@drawable/btn_orange"
+                    android:enabled="false" />
+                <Button
+                    android:id="@+id/btnEmergencyStop"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="42dp"
+                    android:text="🛑 急停"
+                    android:textSize="12sp"
+                    android:textColor="#FFF"
+                    android:background="@drawable/btn_red"
+                    android:layout_marginStart="6dp" />
+                <Button
+                    android:id="@+id/btnBatteryOpt"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="42dp"
+                    android:text="🔋 电池优化"
+                    android:textSize="11sp"
+                    android:textColor="#FFF"
+                    android:background="@drawable/btn_dark"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+
+            <!-- ===== 日志 ===== -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:background="@drawable/card_bg"
+                android:padding="10dp"
+                android:minHeight="120dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="📋 日志"
+                    android:textSize="12sp"
+                    android:textColor="#FFCCCC"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp" />
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
+                    <TextView
+                        android:id="@+id/tvLog"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="6dp"
+                        android:textSize="10sp"
+                        android:fontFamily="monospace"
+                        android:textColor="#AAAAAA"
+                        android:gravity="top"
+                        android:scrollbars="vertical" />
+                </ScrollView>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

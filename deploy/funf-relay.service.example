@@ -1,0 +1,35 @@
+[Unit]
+Description=FUNF multi-tenant relay service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=funf-relay
+Group=funf-relay
+WorkingDirectory=/opt/funf-relay/server
+EnvironmentFile=/etc/funf-relay.env
+ExecStart=/usr/bin/python3 /opt/funf-relay/server/relay_server.py
+Restart=always
+RestartSec=3s
+StateDirectory=funf-relay
+StateDirectoryMode=0750
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/var/lib/funf-relay
+MemoryMax=384M
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target

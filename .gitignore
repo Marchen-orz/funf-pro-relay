@@ -1,0 +1,82 @@
+# ---- 本地文档 / 代理配置（绝对不能上传）----
+PROJECT_SUMMARY.md
+.agents/
+
+# ---- 环境变量 / 密钥（绝对不能上传）----
+.env
+*.env
+.env.*
+!server/.env.example
+deploy/*.env
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+*.log
+server/state.json
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.jsonl
+*.har
+server/backgrounds/
+.test-runtime/
+
+# ---- Android 编译产物 ----
+android/FunfRelayApp/.gradle/
+android/FunfRelayApp/build/
+android/FunfRelayApp/app/build/
+android/FunfRelayApp/local.properties
+android/FunfRelayApp/.idea/
+android/FunfRelayApp/captures/
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# ---- 媒体资源（不传背景图等大文件）----
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.webp
+!android/FunfRelayApp/app/src/main/res/mipmap*/**/*.png
+!android/FunfRelayApp/app/src/main/res/drawable/*.xml
+
+# ---- BLE 抓包文件 ----
+*.btsnoop
+*.cfa
+*.curf
+*.pklg
+*.pcap
+*.pcapng
+*.zip
+
+# ---- IDE / 系统 ----
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- 文档导出 ----
+*.docx
+*.pdf
+
+# ---- HarmonyOS 编译产物 ----
+harmony/HarmonyRelayApp/build/
+harmony/HarmonyRelayApp/entry/build/
+harmony/HarmonyRelayApp/.idea/
+harmony/HarmonyRelayApp/**/build/

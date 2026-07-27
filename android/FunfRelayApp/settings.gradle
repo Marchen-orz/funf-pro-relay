@@ -1,0 +1,3 @@
+// 项目级设置
+rootProject.name = "FunfRelayApp"
+include ":app"

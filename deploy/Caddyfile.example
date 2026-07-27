@@ -1,0 +1,27 @@
+# 把 your-domain.example.com 替换成你的域名
+# WebSocket 反代需要 http 升级 + 长连接超时
+your-domain.example.com {
+    encode zstd gzip
+
+    # WebSocket 长连接
+    handle /ws* {
+        reverse_proxy 127.0.0.1:3870 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+            # WebSocket 升级 header（Caddy 2.7+ 自动处理，但写上保险）
+            flush_interval -1
+        }
+    }
+
+    # REST + 静态网页
+    handle {
+        reverse_proxy 127.0.0.1:3870 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+}

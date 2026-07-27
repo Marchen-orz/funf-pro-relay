@@ -1,0 +1,9 @@
+{
+  "name": "funf-relay",
+  "version": "1.0.0",
+  "description": "啵啵贝 Pro 远程中继 - HarmonyOS",
+  "main": "",
+  "author": "funf",
+  "license": "MIT",
+  "dependencies": {}
+}

@@ -1,0 +1,1452 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>FUNF 设备控制台</title>
+<style>
+  :root {
+    --bg: #f3f5f4;
+    --surface: #ffffff;
+    --surface-2: #eef1ef;
+    --ink: #17201c;
+    --muted: #68736d;
+    --line: #d8dedb;
+    --brand: #16794c;
+    --brand-dark: #105b39;
+    --danger: #c33434;
+    --warning: #b66a00;
+    --info: #2867a5;
+    --shadow: 0 10px 30px rgba(23, 32, 28, 0.09);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    letter-spacing: 0;
+  }
+  button, input, select, textarea { font: inherit; letter-spacing: 0; }
+  button { cursor: pointer; }
+  button:disabled, input:disabled { cursor: not-allowed; opacity: .48; }
+  [hidden] { display: none !important; }
+
+  .login-view {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: #edf1ee;
+  }
+  .login-panel {
+    width: min(100%, 390px);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 28px;
+  }
+  .brand-block { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .brand-mark {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    background: var(--ink);
+    color: white;
+    font-weight: 800;
+    font-size: 13px;
+  }
+  .brand-name { margin: 0; font-size: 20px; line-height: 1.2; }
+  .brand-meta { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+  .field { display: grid; gap: 7px; margin-bottom: 16px; }
+  .field label { font-weight: 650; font-size: 13px; }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    height: 42px;
+    border: 1px solid #bac4bf;
+    border-radius: 6px;
+    background: white;
+    color: var(--ink);
+    padding: 0 11px;
+    outline: none;
+  }
+  .field textarea { min-height: 120px; resize: vertical; padding: 10px 11px; line-height: 1.5; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(22,121,76,.12); }
+  .form-error { min-height: 20px; color: var(--danger); font-size: 12px; margin: 2px 0 10px; }
+
+  .btn {
+    min-height: 36px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 7px 12px;
+    background: var(--ink);
+    color: white;
+    font-weight: 650;
+  }
+  .btn:hover { filter: brightness(.95); }
+  .btn.primary { background: var(--brand); }
+  .btn.danger { background: var(--danger); }
+  .btn.secondary { background: white; color: var(--ink); border-color: #bfc8c3; }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: transparent; }
+  .btn.small { min-height: 30px; padding: 4px 8px; font-size: 12px; }
+  .btn.full { width: 100%; min-height: 42px; }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: white;
+    color: var(--ink);
+    font-size: 18px;
+  }
+
+  .app-header {
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .header-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .header-brand .brand-mark { width: 32px; height: 32px; font-size: 10px; }
+  .header-title { font-weight: 780; white-space: nowrap; }
+  .header-user { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .user-text { text-align: right; min-width: 0; }
+  .user-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+  .user-role { color: var(--muted); font-size: 11px; }
+
+  .tabs {
+    min-height: 44px;
+    display: flex;
+    align-items: end;
+    gap: 4px;
+    padding: 0 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .tab {
+    min-width: 84px;
+    height: 43px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .tab.active { color: var(--brand-dark); border-bottom-color: var(--brand); }
+
+  .device-workspace {
+    min-height: calc(100vh - 102px);
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+  }
+  .device-sidebar {
+    border-right: 1px solid var(--line);
+    background: var(--surface);
+    padding: 16px;
+  }
+  .sidebar-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+  .sidebar-head h2 { font-size: 15px; margin: 0; }
+  .sidebar-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .search-input {
+    width: 100%;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0 10px;
+    margin-bottom: 10px;
+    outline: none;
+  }
+  .device-list { display: grid; gap: 6px; }
+  .device-item {
+    width: 100%;
+    min-height: 68px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 5px 10px;
+    text-align: left;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: white;
+    color: var(--ink);
+  }
+  .device-item.active { border-color: var(--brand); box-shadow: inset 3px 0 var(--brand); }
+  .device-item:disabled { opacity: .55; }
+  .device-label { font-weight: 730; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .device-owner { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .device-state { grid-row: span 2; align-self: center; display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #aab2ae; display: inline-block; flex: 0 0 auto; }
+  .dot.on { background: var(--brand); }
+  .dot.warn { background: var(--warning); }
+  .dot.err { background: var(--danger); }
+  .empty-state { color: var(--muted); padding: 28px 12px; text-align: center; border: 1px dashed #c6ceca; border-radius: 6px; }
+
+  .control-area { min-width: 0; padding: 20px; }
+  .control-inner { max-width: 980px; margin: 0 auto; }
+  .control-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 14px; }
+  .control-head h1 { margin: 0; font-size: 20px; }
+  .control-sub { color: var(--muted); margin-top: 4px; font-size: 12px; }
+  .head-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .status-band {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 6px;
+    margin-bottom: 14px;
+  }
+  .status-cell { min-height: 58px; padding: 11px; border-right: 1px solid var(--line); }
+  .status-cell:last-child { border-right: 0; }
+  .status-label { color: var(--muted); font-size: 11px; margin-bottom: 5px; }
+  .status-value { display: flex; align-items: center; gap: 7px; font-weight: 700; }
+  .warning-bar { display: none; padding: 10px 12px; margin-bottom: 14px; border-left: 4px solid var(--danger); background: #fff0f0; color: #8f1f1f; }
+  .warning-bar.show { display: block; }
+  .preset-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 12px; }
+  .preset-row button { min-height: 38px; }
+  .control-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+  .control-card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
+  .control-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .control-card h3 { margin: 0; font-size: 14px; }
+  .control-value { color: var(--brand-dark); font-weight: 800; font-variant-numeric: tabular-nums; }
+  input[type="range"] { width: 100%; accent-color: var(--brand); margin: 5px 0 12px; }
+  .mode-control { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .mode-control button { min-height: 32px; border: 1px solid var(--line); background: var(--surface-2); border-radius: 5px; color: var(--ink); }
+  .mode-control button.active { background: var(--ink); color: white; border-color: var(--ink); }
+  .electric-note { color: var(--warning); font-size: 11px; }
+  .stop-button { width: 100%; min-height: 48px; margin-top: 12px; border: 0; border-radius: 6px; background: var(--danger); color: white; font-weight: 800; font-size: 15px; }
+  .event-log { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; max-height: 150px; overflow: auto; color: var(--muted); font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .event-line { padding: 3px 0; }
+  .event-line.error { color: var(--danger); }
+  .event-line.success { color: var(--brand-dark); }
+
+  .admin-view { max-width: 1180px; margin: 0 auto; padding: 20px; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .section-head h1 { margin: 0; font-size: 20px; }
+  .table-wrap { overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 680px; }
+  th, td { padding: 11px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+  th { color: var(--muted); font-size: 11px; background: #f8faf9; }
+  tr:last-child td { border-bottom: 0; }
+  .table-actions { display: flex; gap: 5px; justify-content: flex-end; }
+  .state-text.on { color: var(--brand-dark); font-weight: 700; }
+  .state-text.off { color: var(--muted); }
+  .vault-heading { margin: 22px 0 10px; font-size: 15px; }
+  .vault-heading:first-child { margin-top: 0; }
+  .secret-value {
+    display: inline-block;
+    max-width: 440px;
+    color: var(--ink);
+    font: 12px ui-monospace, SFMono-Regular, Consolas, monospace;
+    overflow-wrap: anywhere;
+  }
+  .secret-missing { color: var(--danger); font-size: 12px; }
+  .feedback-form { max-width: 720px; margin-bottom: 22px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+  .feedback-form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .feedback-description { min-width: 240px; max-width: 480px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.45; }
+  .feedback-reply { color: var(--brand-dark); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .feedback-result { padding: 10px 12px; margin-bottom: 14px; border-left: 4px solid var(--brand); background: #edf7f1; color: var(--brand-dark); }
+
+  dialog {
+    width: min(92vw, 480px);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0;
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+  dialog::backdrop { background: rgba(18, 24, 21, .52); }
+  .dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+  .dialog-head h2 { margin: 0; font-size: 17px; }
+  .dialog-body { padding: 18px; }
+  .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 0 18px 18px; }
+  .credential-box { background: #f0f3f1; border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow-wrap: anywhere; font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .credential-row { margin-bottom: 14px; }
+  .credential-row:last-child { margin-bottom: 0; }
+  .credential-label { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; font-weight: 700; }
+  .one-time { color: var(--danger); font-size: 12px; margin: 0 0 14px; }
+  .toast {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    max-width: min(420px, calc(100vw - 36px));
+    padding: 10px 13px;
+    border-radius: 6px;
+    background: var(--ink);
+    color: white;
+    box-shadow: var(--shadow);
+    z-index: 100;
+  }
+
+  @media (max-width: 760px) {
+    .app-header { padding: 0 12px; }
+    .tabs { padding: 0 10px; overflow-x: auto; }
+    .device-workspace { grid-template-columns: 1fr; }
+    .device-sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+    .device-list { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .control-area { padding: 14px 10px 24px; }
+    .status-band { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .status-cell:nth-child(2) { border-right: 0; }
+    .status-cell:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+    .control-grid { grid-template-columns: 1fr; }
+    .feedback-form-row { grid-template-columns: 1fr; gap: 0; }
+    .admin-view { padding: 14px 10px; }
+    .user-text { display: none; }
+  }
+
+  @media (max-width: 440px) {
+    .device-list { grid-template-columns: 1fr; }
+    .control-head { align-items: stretch; flex-direction: column; }
+    .head-actions { justify-content: flex-start; }
+    .preset-row { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .login-panel { padding: 22px 18px; }
+  }
+</style>
+</head>
+<body>
+<section id="loginView" class="login-view">
+  <form id="loginForm" class="login-panel" autocomplete="on">
+    <div class="brand-block">
+      <div class="brand-mark">FUNF</div>
+      <div>
+        <h1 class="brand-name">设备控制台</h1>
+        <p class="brand-meta">安全登录</p>
+      </div>
+    </div>
+    <div class="field">
+      <label for="loginUsername">用户名</label>
+      <input id="loginUsername" name="username" autocomplete="username" required maxlength="32">
+    </div>
+    <div class="field">
+      <label for="loginPassword">密码</label>
+      <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+    </div>
+    <div id="loginError" class="form-error" role="alert"></div>
+    <button class="btn primary full" type="submit">登录</button>
+    <button id="guestFeedbackButton" class="btn secondary full" type="button" style="margin-top:10px">问题反馈</button>
+  </form>
+</section>
+
+<div id="appView" hidden>
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-mark">FUNF</div>
+      <div class="header-title">设备控制台</div>
+    </div>
+    <div class="header-user">
+      <div class="user-text">
+        <div id="headerUsername" class="user-name"></div>
+        <div id="headerRole" class="user-role"></div>
+      </div>
+      <button id="bellButton" class="icon-btn" type="button" title="声音提醒">♪</button>
+      <button id="passwordButton" class="btn secondary small" type="button">修改密码</button>
+      <button id="logoutButton" class="btn ghost small" type="button">退出</button>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="主导航">
+    <button class="tab active" data-view="devices" type="button">设备</button>
+    <button class="tab" data-view="feedback" type="button">问题反馈</button>
+    <button class="tab admin-only" data-view="users" type="button" hidden>用户</button>
+    <button class="tab admin-only" data-view="audit" type="button" hidden>审计</button>
+    <button class="tab admin-only" data-view="vault" type="button" hidden>凭据库</button>
+  </nav>
+
+  <section id="devicesView" class="device-workspace">
+    <aside class="device-sidebar">
+      <div class="sidebar-head">
+        <h2>设备列表</h2>
+        <div class="sidebar-actions">
+          <button id="connectDeviceButton" class="btn secondary small" type="button">输入密钥</button>
+          <button id="newDeviceButton" class="btn primary small" type="button">生成密钥</button>
+        </div>
+      </div>
+      <input id="deviceSearch" class="search-input" type="search" placeholder="搜索设备或用户">
+      <div id="deviceList" class="device-list"></div>
+    </aside>
+
+    <main class="control-area">
+      <div class="control-inner">
+        <div class="control-head">
+          <div>
+            <h1 id="selectedDeviceName">请选择设备</h1>
+            <div id="selectedDeviceMeta" class="control-sub">未建立控制通道</div>
+          </div>
+          <div class="head-actions">
+            <button id="rotateDeviceButton" class="btn secondary small" type="button" disabled>重置密钥</button>
+            <button id="revokeDeviceButton" class="btn secondary small" type="button" disabled>吊销设备</button>
+            <button id="deleteDeviceButton" class="btn danger small" type="button" disabled>永久删除</button>
+          </div>
+        </div>
+
+        <div class="status-band">
+          <div class="status-cell"><div class="status-label">网页连接</div><div class="status-value"><i id="controllerDot" class="dot"></i><span id="controllerStatus">未连接</span></div></div>
+          <div class="status-cell"><div class="status-label">设备 App</div><div class="status-value"><i id="deviceDot" class="dot"></i><span id="deviceStatus">离线</span></div></div>
+          <div class="status-cell"><div class="status-label">BLE</div><div class="status-value"><i id="bleDot" class="dot"></i><span id="bleStatus">未连接</span></div></div>
+          <div class="status-cell"><div class="status-label">控制锁</div><div class="status-value"><i id="lockDot" class="dot"></i><span id="lockStatus">空闲</span></div></div>
+        </div>
+
+        <div id="warningBar" class="warning-bar">设备连接已中断</div>
+
+        <div class="preset-row">
+          <button class="btn secondary control-action" data-preset="calm" type="button">温柔</button>
+          <button class="btn secondary control-action" data-preset="normal" type="button">日常</button>
+          <button class="btn secondary control-action" data-preset="intense" type="button">激烈</button>
+          <button class="btn secondary control-action" data-stop="true" type="button">全部归零</button>
+        </div>
+
+        <div class="control-grid">
+          <section class="control-card" data-function="suction">
+            <div class="control-card-head"><h3>吮吸</h3><span><b id="suctionValue" class="control-value">0</b>/100</span></div>
+            <input id="suctionRange" class="control-input" type="range" min="0" max="100" value="0" data-function="suction">
+            <div class="mode-control" data-function="suction"><button class="active" data-mode="1">M1</button><button data-mode="2">M2</button><button data-mode="3">M3</button><button data-mode="4">M4</button></div>
+          </section>
+          <section class="control-card" data-function="vibration">
+            <div class="control-card-head"><h3>震动</h3><span><b id="vibrationValue" class="control-value">0</b>/100</span></div>
+            <input id="vibrationRange" class="control-input" type="range" min="0" max="100" value="0" data-function="vibration">
+            <div class="mode-control" data-function="vibration"><button class="active" data-mode="1">M1</button><button data-mode="2">M2</button><button data-mode="3">M3</button><button data-mode="4">M4</button></div>
+          </section>
+          <section class="control-card" data-function="electric">
+            <div class="control-card-head"><h3>微电流 <span class="electric-note">从低强度开始</span></h3><span><b id="electricValue" class="control-value">0</b>/100</span></div>
+            <input id="electricRange" class="control-input" type="range" min="0" max="100" value="0" data-function="electric">
+            <div class="mode-control" data-function="electric"><button class="active" data-mode="1">M1</button><button data-mode="2">M2</button><button data-mode="3">M3</button><button data-mode="4">M4</button></div>
+          </section>
+          <section class="control-card" data-function="insertion">
+            <div class="control-card-head"><h3>入体</h3><span><b id="insertionValue" class="control-value">0</b>/100</span></div>
+            <input id="insertionRange" class="control-input" type="range" min="0" max="100" value="0" data-function="insertion">
+            <div class="mode-control" data-function="insertion"><button class="active" data-mode="1">M1</button><button data-mode="2">M2</button><button data-mode="3">M3</button><button data-mode="4">M4</button></div>
+          </section>
+        </div>
+
+        <button id="emergencyStopButton" class="stop-button control-action" type="button" disabled>紧急停止</button>
+        <div id="eventLog" class="event-log" aria-live="polite"></div>
+      </div>
+    </main>
+  </section>
+
+  <section id="usersView" class="admin-view" hidden>
+    <div class="section-head"><h1>用户管理</h1><button id="newUserButton" class="btn primary" type="button">创建用户</button></div>
+    <div class="table-wrap"><table><thead><tr><th>用户名</th><th>状态</th><th>设备</th><th>最近登录</th><th></th></tr></thead><tbody id="usersTable"></tbody></table></div>
+  </section>
+
+  <section id="feedbackView" class="admin-view" hidden>
+    <div class="section-head"><h1>问题反馈</h1><button id="refreshFeedbackButton" class="btn secondary" type="button">刷新</button></div>
+    <form id="feedbackForm" class="feedback-form">
+      <div class="feedback-form-row">
+        <div class="field"><label for="feedbackCategory">问题类型</label><select id="feedbackCategory" required><option value="connection">连接问题</option><option value="device">设备问题</option><option value="account">账号问题</option><option value="feature">功能建议</option><option value="other">其他问题</option></select></div>
+        <div class="field"><label for="feedbackDevice">关联设备</label><select id="feedbackDevice"><option value="">不关联设备</option></select></div>
+      </div>
+      <div class="field"><label for="feedbackDescription">详细描述</label><textarea id="feedbackDescription" required minlength="10" maxlength="2000" placeholder="请描述发生了什么、出现时间和错误信息"></textarea></div>
+      <div id="feedbackFormError" class="form-error" role="alert"></div>
+      <button class="btn primary" type="submit">提交反馈</button>
+    </form>
+    <div class="table-wrap"><table><thead><tr><th>编号</th><th>提交人</th><th>类型</th><th>关联设备</th><th>详细描述</th><th>提交时间</th><th>状态与回复</th><th></th></tr></thead><tbody id="feedbackTable"></tbody></table></div>
+  </section>
+
+  <section id="auditView" class="admin-view" hidden>
+    <div class="section-head"><h1>审计记录</h1><button id="refreshAuditButton" class="btn secondary" type="button">刷新</button></div>
+    <div class="table-wrap"><table><thead><tr><th>时间</th><th>用户</th><th>事件</th><th>设备</th><th>详情</th></tr></thead><tbody id="auditTable"></tbody></table></div>
+  </section>
+
+  <section id="vaultView" class="admin-view" hidden>
+    <div class="section-head"><h1>凭据库</h1><button id="unlockVaultButton" class="btn primary" type="button">验证并查看</button></div>
+    <div id="vaultEmpty" class="empty-state">需要管理员密码验证</div>
+    <div id="vaultContent" hidden>
+      <h2 class="vault-heading">账号凭据</h2>
+      <div class="table-wrap"><table><thead><tr><th>用户名</th><th>角色</th><th>状态</th><th>当前密码</th><th></th></tr></thead><tbody id="vaultUsersTable"></tbody></table></div>
+      <h2 class="vault-heading">设备密钥</h2>
+      <div class="table-wrap"><table><thead><tr><th>设备</th><th>所属用户</th><th>状态</th><th>设备密钥</th><th></th></tr></thead><tbody id="vaultDevicesTable"></tbody></table></div>
+      <h2 class="vault-heading">服务端密钥</h2>
+      <div class="table-wrap"><table><thead><tr><th>名称</th><th>密钥</th><th></th></tr></thead><tbody id="vaultServerTable"></tbody></table></div>
+    </div>
+  </section>
+</div>
+
+<dialog id="deviceDialog">
+  <form id="deviceForm">
+    <div class="dialog-head"><h2>生成设备密钥</h2><button class="icon-btn" data-close="deviceDialog" type="button" title="关闭">×</button></div>
+    <div class="dialog-body">
+      <div class="field"><label for="deviceLabel">设备名称</label><input id="deviceLabel" required maxlength="64" autocomplete="off"></div>
+      <div id="deviceOwnerField" class="field" hidden><label for="deviceOwner">所属用户</label><select id="deviceOwner"></select></div>
+      <div id="deviceFormError" class="form-error"></div>
+    </div>
+    <div class="dialog-actions"><button class="btn secondary" data-close="deviceDialog" type="button">取消</button><button class="btn primary" type="submit">生成</button></div>
+  </form>
+</dialog>
+
+<dialog id="connectDeviceDialog">
+  <form id="connectDeviceForm">
+    <div class="dialog-head"><h2>通过密钥连接设备</h2><button class="icon-btn" data-close="connectDeviceDialog" type="button" title="关闭">×</button></div>
+    <div class="dialog-body">
+      <div class="field"><label for="connectDeviceKey">设备密钥</label><input id="connectDeviceKey" required autocomplete="off" spellcheck="false"></div>
+      <div id="connectDeviceError" class="form-error"></div>
+    </div>
+    <div class="dialog-actions"><button class="btn secondary" data-close="connectDeviceDialog" type="button">取消</button><button class="btn primary" type="submit">连接</button></div>
+  </form>
+</dialog>
+
+<dialog id="userDialog">
+  <form id="userForm">
+    <div class="dialog-head"><h2>创建用户</h2><button class="icon-btn" data-close="userDialog" type="button" title="关闭">×</button></div>
+    <div class="dialog-body">
+      <div class="field"><label for="newUsername">用户名</label><input id="newUsername" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_.-]+" autocomplete="off"></div>
+      <div id="userFormError" class="form-error"></div>
+    </div>
+    <div class="dialog-actions"><button class="btn secondary" data-close="userDialog" type="button">取消</button><button class="btn primary" type="submit">创建</button></div>
+  </form>
+</dialog>
+
+<dialog id="credentialDialog">
+  <div class="dialog-head"><h2 id="credentialTitle">凭据</h2><button class="icon-btn" data-close="credentialDialog" type="button" title="关闭">×</button></div>
+  <div class="dialog-body">
+    <p class="one-time">仅显示一次</p>
+    <div id="credentialRows"></div>
+  </div>
+  <div class="dialog-actions"><button class="btn primary" data-close="credentialDialog" type="button">完成</button></div>
+</dialog>
+
+<dialog id="passwordDialog">
+  <form id="passwordForm">
+    <div class="dialog-head"><h2>修改密码</h2><button id="passwordCloseButton" class="icon-btn" data-close="passwordDialog" type="button" title="关闭">×</button></div>
+    <div class="dialog-body">
+      <div id="mustChangeNotice" class="warning-bar">首次登录必须修改密码</div>
+      <div class="field"><label for="currentPassword">当前密码</label><input id="currentPassword" type="password" required autocomplete="current-password"></div>
+      <div class="field"><label for="newPassword">新密码</label><input id="newPassword" type="password" required minlength="10" autocomplete="new-password"></div>
+      <div class="field"><label for="confirmPassword">确认新密码</label><input id="confirmPassword" type="password" required minlength="10" autocomplete="new-password"></div>
+      <div id="passwordFormError" class="form-error"></div>
+    </div>
+    <div class="dialog-actions"><button class="btn primary" type="submit">保存密码</button></div>
+  </form>
+</dialog>
+
+<dialog id="vaultDialog">
+  <form id="vaultForm">
+    <div class="dialog-head"><h2>验证管理员身份</h2><button class="icon-btn" data-close="vaultDialog" type="button" title="关闭">×</button></div>
+    <div class="dialog-body">
+      <div class="field"><label for="vaultPassword">管理员当前密码</label><input id="vaultPassword" type="password" required autocomplete="current-password"></div>
+      <div id="vaultFormError" class="form-error"></div>
+    </div>
+    <div class="dialog-actions"><button class="btn secondary" data-close="vaultDialog" type="button">取消</button><button class="btn primary" type="submit">验证并查看</button></div>
+  </form>
+</dialog>
+
+<dialog id="guestFeedbackDialog">
+  <form id="guestFeedbackForm">
+    <div class="dialog-head"><h2>问题反馈</h2><button class="icon-btn" data-close="guestFeedbackDialog" type="button" title="关闭">×</button></div>
+    <div class="dialog-body">
+      <div id="guestFeedbackResult" class="feedback-result" hidden></div>
+      <div class="field"><label for="guestReporterName">称呼或联系方式（可选）</label><input id="guestReporterName" maxlength="80" autocomplete="off"></div>
+      <div class="field"><label for="guestFeedbackCategory">问题类型</label><select id="guestFeedbackCategory" required><option value="connection">连接问题</option><option value="device">设备问题</option><option value="account">账号问题</option><option value="feature">功能建议</option><option value="other">其他问题</option></select></div>
+      <div class="field"><label for="guestFeedbackDescription">详细描述</label><textarea id="guestFeedbackDescription" required minlength="10" maxlength="2000"></textarea></div>
+      <div id="guestFeedbackError" class="form-error" role="alert"></div>
+    </div>
+    <div class="dialog-actions"><button class="btn secondary" data-close="guestFeedbackDialog" type="button">取消</button><button class="btn primary" type="submit">提交反馈</button></div>
+  </form>
+</dialog>
+
+<dialog id="feedbackAdminDialog">
+  <form id="feedbackAdminForm">
+    <div class="dialog-head"><h2>处理反馈</h2><button class="icon-btn" data-close="feedbackAdminDialog" type="button" title="关闭">×</button></div>
+    <div class="dialog-body">
+      <div class="field"><label for="feedbackAdminStatus">处理状态</label><select id="feedbackAdminStatus" required><option value="open">待处理</option><option value="in_progress">处理中</option><option value="resolved">已解决</option></select></div>
+      <div class="field"><label for="feedbackAdminReply">管理员回复</label><textarea id="feedbackAdminReply" maxlength="2000"></textarea></div>
+      <div id="feedbackAdminError" class="form-error" role="alert"></div>
+    </div>
+    <div class="dialog-actions"><button class="btn secondary" data-close="feedbackAdminDialog" type="button">取消</button><button class="btn primary" type="submit">保存</button></div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" hidden></div>
+
+<script>
+const $ = (selector) => document.querySelector(selector);
+const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+let currentUser = null;
+let users = [];
+let devices = [];
+let selectedDeviceId = "";
+let socket = null;
+let socketGeneration = 0;
+let reconnectTimer = null;
+let refreshTimer = null;
+let sendTimer = null;
+let bellEnabled = true;
+let vaultData = null;
+let feedbackReports = [];
+
+const controlState = {
+  suction: 0, vibration: 0, electric: 0, insertion: 0,
+  suction_mode: 1, vibration_mode: 1, electric_mode: 1, insertion_mode: 1
+};
+
+async function api(path, options = {}) {
+  const config = { method: options.method || "GET", credentials: "same-origin", headers: {} };
+  if (options.body !== undefined) {
+    config.headers["Content-Type"] = "application/json";
+    config.body = JSON.stringify(options.body);
+  }
+  const response = await fetch(path, config);
+  let payload = {};
+  try { payload = await response.json(); } catch (_) {}
+  if (!response.ok) {
+    const error = new Error(payload.detail || `请求失败 (${response.status})`);
+    error.status = response.status;
+    if (response.status === 401 && path !== "/api/login") showLogin();
+    throw error;
+  }
+  return payload;
+}
+
+function showLogin() {
+  closeSocket();
+  clearVault();
+  clearInterval(refreshTimer);
+  currentUser = null;
+  $("#appView").hidden = true;
+  $("#loginView").hidden = false;
+  $("#loginPassword").value = "";
+}
+
+async function enterApp(user) {
+  currentUser = user;
+  $("#loginView").hidden = true;
+  $("#appView").hidden = false;
+  $("#headerUsername").textContent = user.username;
+  $("#headerRole").textContent = user.role === "admin" ? "管理员" : "用户";
+  $$(".admin-only").forEach((node) => node.hidden = user.role !== "admin");
+  $("#deviceOwnerField").hidden = user.role !== "admin";
+  switchView("devices");
+  if (user.must_change_password) {
+    openPasswordDialog(true);
+    return;
+  }
+  await startWorkspace();
+}
+
+async function startWorkspace() {
+  await Promise.all([loadDevices(), currentUser.role === "admin" ? loadUsers() : Promise.resolve()]);
+  clearInterval(refreshTimer);
+  refreshTimer = setInterval(() => loadDevices(true).catch(() => {}), 10000);
+}
+
+async function bootstrap() {
+  try {
+    const data = await api("/api/session");
+    await enterApp(data.user);
+  } catch (_) {
+    showLogin();
+  }
+}
+
+function switchView(name) {
+  if (name !== "vault") clearVault();
+  $("#devicesView").hidden = name !== "devices";
+  $("#feedbackView").hidden = name !== "feedback";
+  $("#usersView").hidden = name !== "users";
+  $("#auditView").hidden = name !== "audit";
+  $("#vaultView").hidden = name !== "vault";
+  $$(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === name));
+  if (name === "users") loadUsers().catch(showError);
+  if (name === "audit") loadAudit().catch(showError);
+  if (name === "feedback") loadFeedback().catch(showError);
+  if (name === "vault") openVaultDialog();
+}
+
+function showError(error) { toast(error.message || String(error), true); }
+
+function toast(message, isError = false) {
+  const element = $("#toast");
+  element.textContent = message;
+  element.style.background = isError ? "var(--danger)" : "var(--ink)";
+  element.hidden = false;
+  clearTimeout(element._timer);
+  element._timer = setTimeout(() => element.hidden = true, 3200);
+}
+
+function addLog(message, kind = "") {
+  const row = document.createElement("div");
+  row.className = `event-line ${kind}`;
+  row.textContent = `${new Date().toLocaleTimeString()}  ${message}`;
+  const log = $("#eventLog");
+  log.appendChild(row);
+  while (log.children.length > 60) log.firstChild.remove();
+  log.scrollTop = log.scrollHeight;
+}
+
+function setDot(id, state) { $(id).className = `dot ${state || ""}`; }
+
+function selectedDevice() { return devices.find((device) => device.id === selectedDeviceId); }
+
+async function loadDevices(silent = false) {
+  const data = await api("/api/devices");
+  devices = data.devices;
+  renderDevices();
+  populateFeedbackDevices();
+  if (selectedDeviceId && !devices.some((device) => device.id === selectedDeviceId)) {
+    selectedDeviceId = "";
+    closeSocket();
+  }
+  if (!selectedDeviceId) {
+    const first = devices.find((device) => device.enabled);
+    if (first) selectDevice(first.id);
+    else renderSelectedDevice();
+  } else {
+    renderSelectedDevice();
+    const current = selectedDevice();
+    if (current) updatePresenceFromList(current);
+  }
+  if (!silent && currentUser.role === "admin" && users.length === 0) await loadUsers();
+}
+
+function renderDevices() {
+  const container = $("#deviceList");
+  const query = $("#deviceSearch").value.trim().toLowerCase();
+  container.replaceChildren();
+  const filtered = devices.filter((device) => !query || device.label.toLowerCase().includes(query) || device.owner_username.toLowerCase().includes(query));
+  if (!filtered.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = devices.length ? "没有匹配的设备" : "暂无设备";
+    container.appendChild(empty);
+    return;
+  }
+  filtered.forEach((device) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "device-item" + (device.id === selectedDeviceId ? " active" : "");
+    button.addEventListener("click", () => selectDevice(device.id));
+    const label = document.createElement("span");
+    label.className = "device-label";
+    label.textContent = device.label;
+    const owner = document.createElement("span");
+    owner.className = "device-owner";
+    owner.textContent = device.access_type === "shared"
+      ? `临时共享 · ${device.owner_username}`
+      : (currentUser.role === "admin" ? `${device.owner_username} · …${device.token_suffix}` : `密钥 …${device.token_suffix}`);
+    const status = document.createElement("span");
+    status.className = "device-state";
+    const dot = document.createElement("i");
+    dot.className = `dot ${device.device_online ? "on" : ""}`;
+    status.append(dot, document.createTextNode(device.enabled ? (device.device_online ? "在线" : "离线") : "已吊销"));
+    button.append(label, status, owner);
+    container.appendChild(button);
+  });
+}
+
+function selectDevice(deviceId) {
+  if (deviceId === selectedDeviceId && socket) return;
+  selectedDeviceId = deviceId;
+  renderDevices();
+  renderSelectedDevice();
+  connectSocket();
+}
+
+function renderSelectedDevice() {
+  const device = selectedDevice();
+  $("#selectedDeviceName").textContent = device ? device.label : "请选择设备";
+  $("#selectedDeviceMeta").textContent = device
+    ? (device.access_type === "shared" ? `临时共享 · ${device.owner_username}` : `${currentUser.role === "admin" ? device.owner_username + " · " : ""}密钥 …${device.token_suffix}`)
+    : "未建立控制通道";
+  $("#rotateDeviceButton").disabled = !device || !device.can_manage || device.legacy || !device.enabled;
+  $("#revokeDeviceButton").disabled = !device || !device.can_manage || device.legacy || !device.enabled;
+  $("#deleteDeviceButton").disabled = !device || !device.can_manage || device.legacy || device.enabled;
+  if (!device) resetConnectionStatus();
+}
+
+function updatePresenceFromList(device) {
+  setDot("#deviceDot", device.device_online ? "on" : "");
+  $("#deviceStatus").textContent = device.device_online ? "在线" : "离线";
+  setDot("#bleDot", device.ble_connected ? "on" : "");
+  $("#bleStatus").textContent = device.ble_connected ? "已连接" : "未连接";
+}
+
+function closeSocket() {
+  socketGeneration += 1;
+  clearTimeout(reconnectTimer);
+  if (socket) {
+    socket.onclose = null;
+    socket.onerror = null;
+    try { socket.close(); } catch (_) {}
+    socket = null;
+  }
+  setControlsEnabled(false);
+}
+
+function connectSocket() {
+  closeSocket();
+  const device = selectedDevice();
+  if (!device || !device.enabled || currentUser.must_change_password) return;
+  const generation = socketGeneration;
+  const scheme = location.protocol === "https:" ? "wss:" : "ws:";
+  socket = new WebSocket(`${scheme}//${location.host}/ws?role=controller&device=${encodeURIComponent(device.id)}`);
+  socket.onopen = () => {
+    if (generation !== socketGeneration) return;
+    setDot("#controllerDot", "on");
+    $("#controllerStatus").textContent = "已连接";
+    setControlsEnabled(true);
+    addLog("控制通道已连接", "success");
+  };
+  socket.onclose = (event) => {
+    if (generation !== socketGeneration) return;
+    setDot("#controllerDot", "err");
+    $("#controllerStatus").textContent = "已断开";
+    setControlsEnabled(false);
+    if (selectedDeviceId && currentUser) {
+      addLog(`控制通道断开 (${event.code})`, "error");
+      reconnectTimer = setTimeout(connectSocket, 3000);
+    }
+  };
+  socket.onerror = () => addLog("控制通道连接失败", "error");
+  socket.onmessage = (event) => handleSocketMessage(JSON.parse(event.data));
+}
+
+function handleSocketMessage(message) {
+  switch (message.type) {
+    case "hello":
+      syncState(message.device_state);
+      setDot("#deviceDot", message.peer_online ? "on" : "");
+      $("#deviceStatus").textContent = message.peer_online ? "在线" : "离线";
+      setDot("#bleDot", message.device_state.ble_connected ? "on" : "");
+      $("#bleStatus").textContent = message.device_state.ble_connected ? "已连接" : "未连接";
+      $("#warningBar").classList.toggle("show", !message.peer_online);
+      break;
+    case "ping": sendSocket({type: "pong"}); break;
+    case "heartbeat_ack": break;
+    case "peer_connected":
+      if (message.role === "device") {
+        setDot("#deviceDot", "on"); $("#deviceStatus").textContent = "在线";
+        $("#warningBar").classList.remove("show");
+        addLog("设备 App 已上线", "success");
+      }
+      break;
+    case "peer_disconnected":
+      if (message.role === "device") {
+        setDot("#deviceDot", "err"); setDot("#bleDot", "err");
+        $("#deviceStatus").textContent = "离线"; $("#bleStatus").textContent = "未连接";
+        $("#warningBar").classList.add("show"); beep();
+        addLog("设备 App 已离线", "error");
+      }
+      break;
+    case "ble_status":
+      setDot("#bleDot", message.ble_connected ? "on" : (message.ble_connecting ? "warn" : "err"));
+      $("#bleStatus").textContent = message.ble_connected ? "已连接" : (message.ble_connecting ? "连接中" : "未连接");
+      if (message.error) addLog(`BLE: ${message.error}`, "error");
+      break;
+    case "command_ack":
+      if (message.ok) {
+        setDot("#lockDot", "on"); $("#lockStatus").textContent = "当前用户";
+        if (message.state) syncState(message.state);
+        addLog(`指令已下发 (${message.frames_sent || 0} 帧)`, "success");
+      } else addLog(`指令失败：${message.detail || "未知错误"}`, "error");
+      break;
+    case "stop_ack": addLog("停止指令已下发", "success"); break;
+    case "lock_released": setDot("#lockDot", ""); $("#lockStatus").textContent = "空闲"; break;
+    case "command_result": addLog("设备已返回执行结果"); break;
+    case "emergency_stop":
+      zeroControls(); beep();
+      setDot("#lockDot", "err"); $("#lockStatus").textContent = "设备急停";
+      addLog("设备端触发紧急停止", "error");
+      break;
+  }
+}
+
+function sendSocket(message) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    addLog("控制通道未连接", "error");
+    return false;
+  }
+  socket.send(JSON.stringify(message));
+  return true;
+}
+
+function setControlsEnabled(enabled) {
+  $$(".control-input, .mode-control button, .control-action").forEach((element) => element.disabled = !enabled);
+  $("#emergencyStopButton").disabled = !enabled;
+}
+
+function syncState(state) {
+  if (!state) return;
+  ["suction", "vibration", "electric", "insertion"].forEach((name) => {
+    if (state[name] !== undefined) controlState[name] = Number(state[name]) || 0;
+    if (state[`${name}_mode`] !== undefined) controlState[`${name}_mode`] = Number(state[`${name}_mode`]) || 1;
+    $(`#${name}Range`).value = controlState[name];
+    $(`#${name}Value`).textContent = controlState[name];
+    $$(`.mode-control[data-function="${name}"] button`).forEach((button) => button.classList.toggle("active", Number(button.dataset.mode) === controlState[`${name}_mode`]));
+  });
+}
+
+function sendControlState() { sendSocket({type: "command", state: controlState}); }
+
+function zeroControls() {
+  ["suction", "vibration", "electric", "insertion"].forEach((name) => controlState[name] = 0);
+  syncState(controlState);
+}
+
+function stopAll() { zeroControls(); sendSocket({type: "stop"}); }
+
+function resetConnectionStatus() {
+  ["#controllerDot", "#deviceDot", "#bleDot", "#lockDot"].forEach((id) => setDot(id, ""));
+  $("#controllerStatus").textContent = "未连接";
+  $("#deviceStatus").textContent = "离线";
+  $("#bleStatus").textContent = "未连接";
+  $("#lockStatus").textContent = "空闲";
+  setControlsEnabled(false);
+}
+
+function beep() {
+  if (!bellEnabled) return;
+  try {
+    const context = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.connect(gain); gain.connect(context.destination);
+    oscillator.frequency.value = 760;
+    gain.gain.setValueAtTime(.18, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001, context.currentTime + .45);
+    oscillator.start(); oscillator.stop(context.currentTime + .45);
+  } catch (_) {}
+}
+
+async function loadUsers() {
+  if (!currentUser || currentUser.role !== "admin") return;
+  const data = await api("/api/users");
+  users = data.users;
+  renderUsers();
+  const ownerSelect = $("#deviceOwner");
+  const existing = ownerSelect.value;
+  ownerSelect.replaceChildren();
+  users.filter((user) => user.enabled).forEach((user) => {
+    const option = document.createElement("option");
+    option.value = user.id; option.textContent = `${user.username}${user.role === "admin" ? "（管理员）" : ""}`;
+    ownerSelect.appendChild(option);
+  });
+  if ([...ownerSelect.options].some((option) => option.value === existing)) ownerSelect.value = existing;
+}
+
+function renderUsers() {
+  const body = $("#usersTable");
+  body.replaceChildren();
+  users.forEach((user) => {
+    const row = document.createElement("tr");
+    const username = document.createElement("td"); username.textContent = user.username + (user.role === "admin" ? "（管理员）" : "");
+    const state = document.createElement("td");
+    const stateText = document.createElement("span"); stateText.className = `state-text ${user.enabled ? "on" : "off"}`; stateText.textContent = user.enabled ? (user.must_change_password ? "等待改密" : "启用") : "停用"; state.appendChild(stateText);
+    const count = document.createElement("td"); count.textContent = String(user.device_count);
+    const login = document.createElement("td"); login.textContent = formatTime(user.last_login);
+    const actions = document.createElement("td"); actions.className = "table-actions";
+    if (user.role !== "admin") {
+      actions.append(
+        actionButton("重置密码", () => resetUserPassword(user)),
+        actionButton(user.enabled ? "停用" : "启用", () => toggleUser(user), user.enabled)
+      );
+    }
+    row.append(username, state, count, login, actions);
+    body.appendChild(row);
+  });
+}
+
+function actionButton(text, handler, danger = false) {
+  const button = document.createElement("button");
+  button.type = "button"; button.className = `btn small ${danger ? "danger" : "secondary"}`; button.textContent = text; button.addEventListener("click", handler);
+  return button;
+}
+
+async function toggleUser(user) {
+  const verb = user.enabled ? "停用" : "启用";
+  if (!confirm(`${verb}用户 ${user.username}？`)) return;
+  await api(`/api/users/${encodeURIComponent(user.id)}`, {method: "PATCH", body: {enabled: !user.enabled}});
+  toast(`用户已${verb}`);
+  await Promise.all([loadUsers(), loadDevices(true)]);
+}
+
+async function resetUserPassword(user) {
+  if (!confirm(`重置 ${user.username} 的密码并注销其会话？`)) return;
+  const data = await api(`/api/users/${encodeURIComponent(user.id)}/reset-password`, {method: "POST", body: {}});
+  showCredentials(`${user.username} 的临时密码`, [{label: "用户名", value: user.username}, {label: "临时密码", value: data.temporary_password}]);
+  await loadUsers();
+}
+
+async function loadAudit() {
+  const data = await api("/api/audit");
+  const body = $("#auditTable");
+  body.replaceChildren();
+  data.events.forEach((event) => {
+    const row = document.createElement("tr");
+    [formatTime(event.at), event.actor_username || "系统", formatAuditAction(event.action), event.target || "-", formatAuditDetails(event)].forEach((value) => {
+      const cell = document.createElement("td"); cell.textContent = value; row.appendChild(cell);
+    });
+    body.appendChild(row);
+  });
+}
+
+function populateFeedbackDevices() {
+  const select = $("#feedbackDevice");
+  if (!select) return;
+  const selected = select.value;
+  select.replaceChildren();
+  const empty = document.createElement("option");
+  empty.value = "";
+  empty.textContent = "不关联设备";
+  select.appendChild(empty);
+  devices.filter((device) => device.enabled).forEach((device) => {
+    const option = document.createElement("option");
+    option.value = device.id;
+    option.textContent = currentUser && currentUser.role === "admin"
+      ? `${device.label} · ${device.owner_username}`
+      : device.label;
+    select.appendChild(option);
+  });
+  if ([...select.options].some((option) => option.value === selected)) select.value = selected;
+}
+
+async function loadFeedback() {
+  if (!currentUser) return;
+  const data = await api("/api/feedback");
+  feedbackReports = data.feedback;
+  renderFeedback();
+}
+
+function feedbackCategoryLabel(category) {
+  return {connection: "连接问题", device: "设备问题", account: "账号问题", feature: "功能建议", other: "其他问题"}[category] || category;
+}
+
+function feedbackStatusLabel(status) {
+  return {open: "待处理", in_progress: "处理中", resolved: "已解决"}[status] || status;
+}
+
+function renderFeedback() {
+  const body = $("#feedbackTable");
+  body.replaceChildren();
+  if (!feedbackReports.length) {
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 8;
+    cell.className = "empty-state";
+    cell.textContent = "暂无反馈记录";
+    row.appendChild(cell);
+    body.appendChild(row);
+    return;
+  }
+  feedbackReports.forEach((report) => {
+    const row = document.createElement("tr");
+    const values = [
+      `#${report.id}`,
+      report.reporter_name || "访客",
+      feedbackCategoryLabel(report.category),
+      report.device_label || "-"
+    ];
+    values.forEach((value) => {
+      const cell = document.createElement("td");
+      cell.textContent = value;
+      row.appendChild(cell);
+    });
+    const description = document.createElement("td");
+    description.className = "feedback-description";
+    description.textContent = report.description;
+    const created = document.createElement("td");
+    created.textContent = formatTime(report.created_at);
+    const state = document.createElement("td");
+    const stateText = document.createElement("div");
+    stateText.className = `state-text ${report.status === "resolved" ? "on" : "off"}`;
+    stateText.textContent = feedbackStatusLabel(report.status);
+    state.appendChild(stateText);
+    if (report.admin_reply) {
+      const reply = document.createElement("div");
+      reply.className = "feedback-reply";
+      reply.textContent = `回复：${report.admin_reply}`;
+      state.appendChild(reply);
+    }
+    const actions = document.createElement("td");
+    actions.className = "table-actions";
+    if (currentUser.role === "admin") actions.appendChild(actionButton("处理", () => openFeedbackAdmin(report)));
+    row.append(description, created, state, actions);
+    body.appendChild(row);
+  });
+}
+
+function openFeedbackAdmin(report) {
+  $("#feedbackAdminForm").reset();
+  $("#feedbackAdminForm").dataset.feedbackId = String(report.id);
+  $("#feedbackAdminStatus").value = report.status;
+  $("#feedbackAdminReply").value = report.admin_reply || "";
+  $("#feedbackAdminError").textContent = "";
+  $("#feedbackAdminDialog").showModal();
+}
+
+function openVaultDialog() {
+  if (!currentUser || currentUser.role !== "admin") return;
+  $("#vaultForm").reset();
+  $("#vaultFormError").textContent = "";
+  if (!$("#vaultDialog").open) $("#vaultDialog").showModal();
+}
+
+function clearVault() {
+  vaultData = null;
+  const content = $("#vaultContent");
+  const empty = $("#vaultEmpty");
+  if (content) content.hidden = true;
+  if (empty) empty.hidden = false;
+  ["#vaultUsersTable", "#vaultDevicesTable", "#vaultServerTable"].forEach((selector) => {
+    const table = $(selector);
+    if (table) table.replaceChildren();
+  });
+  const dialog = $("#vaultDialog");
+  if (dialog && dialog.open) dialog.close();
+  const password = $("#vaultPassword");
+  if (password) password.value = "";
+}
+
+function secretCell(value) {
+  const cell = document.createElement("td");
+  const text = document.createElement(value ? "code" : "span");
+  text.className = value ? "secret-value" : "secret-missing";
+  text.textContent = value || "不可恢复，请重置";
+  cell.appendChild(text);
+  return cell;
+}
+
+function copyCell(value) {
+  const cell = document.createElement("td");
+  cell.className = "table-actions";
+  const button = actionButton("复制", () => copyText(value || ""));
+  button.disabled = !value;
+  cell.appendChild(button);
+  return cell;
+}
+
+function renderVault() {
+  if (!vaultData) return;
+  $("#vaultEmpty").hidden = true;
+  $("#vaultContent").hidden = false;
+
+  const usersBody = $("#vaultUsersTable");
+  usersBody.replaceChildren();
+  vaultData.users.forEach((user) => {
+    const row = document.createElement("tr");
+    const username = document.createElement("td"); username.textContent = user.username;
+    const role = document.createElement("td"); role.textContent = user.role === "admin" ? "管理员" : "用户";
+    const state = document.createElement("td"); state.textContent = user.enabled ? (user.must_change_password ? "等待改密" : "启用") : "停用";
+    row.append(username, role, state, secretCell(user.password), copyCell(user.password));
+    usersBody.appendChild(row);
+  });
+
+  const devicesBody = $("#vaultDevicesTable");
+  devicesBody.replaceChildren();
+  vaultData.devices.forEach((device) => {
+    const row = document.createElement("tr");
+    const label = document.createElement("td"); label.textContent = device.label;
+    const owner = document.createElement("td"); owner.textContent = device.owner_username;
+    const state = document.createElement("td"); state.textContent = device.enabled ? "启用" : "已吊销";
+    row.append(label, owner, state, secretCell(device.device_key), copyCell(device.device_key));
+    devicesBody.appendChild(row);
+  });
+
+  const serverBody = $("#vaultServerTable");
+  serverBody.replaceChildren();
+  vaultData.server_keys.forEach((entry) => {
+    const row = document.createElement("tr");
+    const name = document.createElement("td"); name.textContent = entry.name;
+    row.append(name, secretCell(entry.value), copyCell(entry.value));
+    serverBody.appendChild(row);
+  });
+}
+
+function formatAuditAction(action) {
+  return {
+    controller_connected: "网页控制连接",
+    controller_disconnected: "网页控制断开",
+    feedback_created: "提交问题反馈",
+    feedback_updated: "处理问题反馈"
+  }[action] || action;
+}
+
+function formatDuration(seconds) {
+  const value = Math.max(0, Number(seconds) || 0);
+  const minutes = Math.floor(value / 60);
+  const remainder = value % 60;
+  return minutes ? String(minutes) + " 分 " + String(remainder) + " 秒" : String(remainder) + " 秒";
+}
+
+function formatAuditDetails(event) {
+  if (event.action === "controller_connected") {
+    const access = (event.details || "").replace("access=", "");
+    const accessLabels = {owned: "设备所有者", shared: "密钥共享", admin: "管理员", legacy_api: "旧 API Token"};
+    return "访问方式：" + (accessLabels[access] || access || "-");
+  }
+  if (event.action === "controller_disconnected") {
+    const values = Object.fromEntries((event.details || "").split(";").filter(Boolean).map((part) => part.split("=", 2)));
+    const reasonLabels = {
+      client_disconnected: "用户主动断开",
+      replaced: "被新连接替换",
+      device_key_rotated: "设备密钥已重置",
+      device_key_revoked: "设备密钥已吊销",
+      user_disabled: "用户已停用",
+      access_expired: "访问授权已失效",
+      heartbeat_timeout: "连接心跳超时",
+      send_failed: "连接发送失败",
+      server_error: "服务端异常"
+    };
+    return "连接时长：" + formatDuration(values.duration_seconds) + " · 断开：" + (reasonLabels[values.reason] || values.reason || "连接结束");
+  }
+  return event.details || "-";
+}
+
+function formatTime(timestamp) {
+  if (!timestamp) return "-";
+  return new Date(timestamp * 1000).toLocaleString();
+}
+
+function openPasswordDialog(forced = false) {
+  $("#passwordForm").reset();
+  $("#passwordFormError").textContent = "";
+  $("#mustChangeNotice").classList.toggle("show", forced);
+  $("#passwordCloseButton").hidden = forced;
+  $("#passwordDialog").dataset.forced = forced ? "true" : "false";
+  $("#passwordDialog").showModal();
+}
+
+function showCredentials(title, rows) {
+  $("#credentialTitle").textContent = title;
+  const container = $("#credentialRows");
+  container.replaceChildren();
+  rows.forEach((item) => {
+    const row = document.createElement("div"); row.className = "credential-row";
+    const label = document.createElement("div"); label.className = "credential-label";
+    const labelText = document.createElement("span"); labelText.textContent = item.label;
+    const copy = document.createElement("button"); copy.type = "button"; copy.className = "btn secondary small"; copy.textContent = "复制"; copy.addEventListener("click", () => copyText(item.value));
+    const value = document.createElement("div"); value.className = "credential-box"; value.textContent = item.value;
+    label.append(labelText, copy); row.append(label, value); container.appendChild(row);
+  });
+  $("#credentialDialog").showModal();
+}
+
+async function copyText(text) {
+  await navigator.clipboard.writeText(text);
+  toast("已复制");
+}
+
+$("#loginForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  $("#loginError").textContent = "";
+  try {
+    const data = await api("/api/login", {method: "POST", body: {username: $("#loginUsername").value, password: $("#loginPassword").value}});
+    await enterApp(data.user);
+  } catch (error) { $("#loginError").textContent = error.message; }
+});
+
+$("#guestFeedbackButton").addEventListener("click", () => {
+  $("#guestFeedbackForm").reset();
+  $("#guestFeedbackError").textContent = "";
+  $("#guestFeedbackResult").hidden = true;
+  $("#guestFeedbackDialog").showModal();
+});
+
+$("#guestFeedbackForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  $("#guestFeedbackError").textContent = "";
+  try {
+    const data = await api("/api/feedback", {method: "POST", body: {
+      reporter_name: $("#guestReporterName").value,
+      category: $("#guestFeedbackCategory").value,
+      description: $("#guestFeedbackDescription").value
+    }});
+    const result = $("#guestFeedbackResult");
+    result.textContent = `反馈 #${data.feedback.id} 已提交，管理员将尽快处理。`;
+    result.hidden = false;
+    $("#guestFeedbackDescription").value = "";
+  } catch (error) { $("#guestFeedbackError").textContent = error.message; }
+});
+
+$("#logoutButton").addEventListener("click", async () => { try { await api("/api/logout", {method: "POST", body: {}}); } finally { showLogin(); } });
+$("#passwordButton").addEventListener("click", () => openPasswordDialog(false));
+$("#bellButton").addEventListener("click", () => { bellEnabled = !bellEnabled; $("#bellButton").style.opacity = bellEnabled ? "1" : ".4"; });
+$$(".tab").forEach((tab) => tab.addEventListener("click", () => switchView(tab.dataset.view)));
+$("#deviceSearch").addEventListener("input", renderDevices);
+$("#connectDeviceButton").addEventListener("click", () => { $("#connectDeviceForm").reset(); $("#connectDeviceError").textContent = ""; $("#connectDeviceDialog").showModal(); });
+$("#newDeviceButton").addEventListener("click", async () => { if (currentUser.role === "admin") await loadUsers(); $("#deviceForm").reset(); $("#deviceFormError").textContent = ""; $("#deviceDialog").showModal(); });
+$("#newUserButton").addEventListener("click", () => { $("#userForm").reset(); $("#userFormError").textContent = ""; $("#userDialog").showModal(); });
+$("#refreshAuditButton").addEventListener("click", () => loadAudit().catch(showError));
+$("#refreshFeedbackButton").addEventListener("click", () => loadFeedback().catch(showError));
+$("#unlockVaultButton").addEventListener("click", openVaultDialog);
+
+$("#feedbackForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  $("#feedbackFormError").textContent = "";
+  try {
+    const data = await api("/api/feedback", {method: "POST", body: {
+      category: $("#feedbackCategory").value,
+      device_id: $("#feedbackDevice").value,
+      description: $("#feedbackDescription").value
+    }});
+    $("#feedbackDescription").value = "";
+    toast(`反馈 #${data.feedback.id} 已提交`);
+    await loadFeedback();
+  } catch (error) { $("#feedbackFormError").textContent = error.message; }
+});
+
+$("#feedbackAdminForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  $("#feedbackAdminError").textContent = "";
+  const feedbackId = $("#feedbackAdminForm").dataset.feedbackId;
+  try {
+    await api(`/api/admin/feedback/${encodeURIComponent(feedbackId)}`, {method: "PATCH", body: {
+      status: $("#feedbackAdminStatus").value,
+      admin_reply: $("#feedbackAdminReply").value
+    }});
+    $("#feedbackAdminDialog").close();
+    toast("反馈处理结果已保存");
+    await loadFeedback();
+  } catch (error) { $("#feedbackAdminError").textContent = error.message; }
+});
+
+$("#vaultForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  $("#vaultFormError").textContent = "";
+  try {
+    vaultData = await api("/api/admin/vault", {method: "POST", body: {password: $("#vaultPassword").value}});
+    $("#vaultPassword").value = "";
+    $("#vaultDialog").close();
+    renderVault();
+  } catch (error) { $("#vaultFormError").textContent = error.message; }
+});
+
+$("#deviceForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  $("#deviceFormError").textContent = "";
+  try {
+    const body = {label: $("#deviceLabel").value};
+    if (currentUser.role === "admin") body.owner_id = $("#deviceOwner").value;
+    const data = await api("/api/devices", {method: "POST", body});
+    $("#deviceDialog").close();
+    const url = `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws?role=device&token=${encodeURIComponent(data.device_key)}`;
+    showCredentials("设备连接凭据", [{label: "设备密钥", value: data.device_key}, {label: "WebSocket 地址", value: url}]);
+    await loadDevices();
+    selectDevice(data.device.id);
+  } catch (error) { $("#deviceFormError").textContent = error.message; }
+});
+
+$("#connectDeviceForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  $("#connectDeviceError").textContent = "";
+  try {
+    const data = await api("/api/devices/connect", {method: "POST", body: {device_key: $("#connectDeviceKey").value}});
+    $("#connectDeviceKey").value = "";
+    $("#connectDeviceDialog").close();
+    await loadDevices(true);
+    selectDevice(data.device.id);
+    toast(data.device.access_type === "shared" ? "已临时连接共享设备" : "设备已连接");
+  } catch (error) { $("#connectDeviceError").textContent = error.message; }
+});
+
+$("#userForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  $("#userFormError").textContent = "";
+  try {
+    const data = await api("/api/users", {method: "POST", body: {username: $("#newUsername").value}});
+    $("#userDialog").close();
+    showCredentials("用户初始凭据", [{label: "用户名", value: data.user.username}, {label: "临时密码", value: data.initial_password}]);
+    await loadUsers();
+  } catch (error) { $("#userFormError").textContent = error.message; }
+});
+
+$("#passwordForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const next = $("#newPassword").value;
+  if (next !== $("#confirmPassword").value) { $("#passwordFormError").textContent = "两次输入的新密码不一致"; return; }
+  try {
+    await api("/api/account/password", {method: "POST", body: {current_password: $("#currentPassword").value, new_password: next}});
+    currentUser.must_change_password = 0;
+    $("#passwordDialog").close();
+    toast("密码已更新");
+    await startWorkspace();
+  } catch (error) { $("#passwordFormError").textContent = error.message; }
+});
+
+$("#rotateDeviceButton").addEventListener("click", async () => {
+  const device = selectedDevice();
+  if (!device || !confirm(`重置 ${device.label} 的密钥？当前设备连接会立即断开。`)) return;
+  try {
+    const data = await api(`/api/devices/${encodeURIComponent(device.id)}/rotate`, {method: "POST", body: {}});
+    const url = `${location.protocol === "https:" ? "wss:" : "ws:"}//${location.host}/ws?role=device&token=${encodeURIComponent(data.device_key)}`;
+    showCredentials("新的设备连接凭据", [{label: "设备密钥", value: data.device_key}, {label: "WebSocket 地址", value: url}]);
+    await loadDevices(true); connectSocket();
+  } catch (error) { showError(error); }
+});
+
+$("#revokeDeviceButton").addEventListener("click", async () => {
+  const device = selectedDevice();
+  if (!device || !confirm(`永久吊销 ${device.label} 的设备密钥？`)) return;
+  try {
+    await api(`/api/devices/${encodeURIComponent(device.id)}`, {method: "DELETE"});
+    closeSocket(); await loadDevices(); toast("设备密钥已吊销，可选择永久删除");
+  } catch (error) { showError(error); }
+});
+
+$("#deleteDeviceButton").addEventListener("click", async () => {
+  const device = selectedDevice();
+  if (!device || device.enabled || !confirm(`永久删除 ${device.label}？删除后无法恢复。`)) return;
+  try {
+    await api(`/api/devices/${encodeURIComponent(device.id)}/record`, {method: "DELETE"});
+    selectedDeviceId = "";
+    closeSocket();
+    await loadDevices();
+    toast("设备已永久删除");
+  } catch (error) { showError(error); }
+});
+
+$$(".control-input").forEach((input) => input.addEventListener("input", () => {
+  const name = input.dataset.function;
+  controlState[name] = Number(input.value);
+  $(`#${name}Value`).textContent = input.value;
+  setDot("#lockDot", "on"); $("#lockStatus").textContent = "当前用户";
+  clearTimeout(sendTimer); sendTimer = setTimeout(sendControlState, 150);
+}));
+
+$$(".mode-control button").forEach((button) => button.addEventListener("click", () => {
+  const group = button.closest(".mode-control");
+  const name = group.dataset.function;
+  controlState[`${name}_mode`] = Number(button.dataset.mode);
+  group.querySelectorAll("button").forEach((item) => item.classList.toggle("active", item === button));
+  sendControlState();
+}));
+
+$$("[data-preset]").forEach((button) => button.addEventListener("click", () => sendSocket({type: "apply_preset", name: button.dataset.preset})));
+$$("[data-stop]").forEach((button) => button.addEventListener("click", stopAll));
+$("#emergencyStopButton").addEventListener("click", stopAll);
+$$("[data-close]").forEach((button) => button.addEventListener("click", () => {
+  const dialog = document.getElementById(button.dataset.close);
+  if (dialog.id === "passwordDialog" && dialog.dataset.forced === "true") return;
+  dialog.close();
+}));
+
+$("#passwordDialog").addEventListener("cancel", (event) => {
+  if ($("#passwordDialog").dataset.forced === "true") event.preventDefault();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) clearVault();
+});
+
+setInterval(() => {
+  if (socket && socket.readyState === WebSocket.OPEN) sendSocket({type: "heartbeat"});
+}, 15000);
+resetConnectionStatus();
+bootstrap();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# FunfRelayApp 构建结果
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+captures/
+.cxx/

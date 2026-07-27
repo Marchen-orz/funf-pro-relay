@@ -1,0 +1,8 @@
+{
+  "string": [
+    {"name": "app_name", "value": "啵啵贝中继"},
+    {"name": "module_desc", "value": "啵啵贝 Pro 远程中继"},
+    {"name": "EntryAbility_desc", "value": "主页面"},
+    {"name": "EntryAbility_label", "value": "啵啵贝中继"}
+  ]
+}
