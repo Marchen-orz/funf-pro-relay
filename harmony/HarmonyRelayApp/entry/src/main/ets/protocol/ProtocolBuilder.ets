@@ -1,6 +1,6 @@
 /**
  * 协议帧构建器 —— 与 server/protocol.py 同构
- * Pro 已探测：吮吸(07/08)✓ 震动(01/02)✓ 电流(03/04) 入体待定
+ * Pro 已探测：吮吸(07/08)✓ 震动(01/02)✓ 电流(03/04)
  */
 
 // 功能 -> (mode1, mode2) 通道对
@@ -8,7 +8,6 @@ const fnModes: Record<string, [number, number]> = {
   "suction":   [0x07, 0x08],
   "vibration": [0x01, 0x02],
   "electric":  [0x03, 0x04]
-  // "insertion": [0x??, 0x??]  // 待抓包
 };
 
 function rndSeq(): number {

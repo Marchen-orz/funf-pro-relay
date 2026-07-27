@@ -74,7 +74,7 @@ struct RelayPage {
           break;
         case EVENT_DEVICE_STATE:
           const st = JSON.parse(data.data) as Record<string,number>;
-          this.intensity = `吮${st["suction"]??0} 震${st["vibration"]??0} 电${st["electric"]??0} 入${st["insertion"]??0}`;
+          this.intensity = `吮${st["suction"]??0} 震${st["vibration"]??0} 电${st["electric"]??0}`;
           break;
         case EVENT_BATTERY:
           const lvl = parseInt(data.data);

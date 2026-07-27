@@ -28,7 +28,7 @@ export default class RelayService extends ServiceExtensionAbility {
   private ble: BleManager = new BleManager();
   private heartbeatTimer: number | null = null;
   private wsReconnectTimer: number | null = null;
-  private state = { suction: 0, vibration: 0, electric: 0, insertion: 0 };
+  private state = { suction: 0, vibration: 0, electric: 0 };
 
   onCreate(want: Want): void {
     console.info("[Relay] onCreate");
@@ -174,7 +174,6 @@ export default class RelayService extends ServiceExtensionAbility {
           this.state.suction = state["suction"] ?? 0;
           this.state.vibration = state["vibration"] ?? 0;
           this.state.electric = state["electric"] ?? 0;
-          this.state.insertion = state["insertion"] ?? 0;
           this.emitEvent(EVENT_DEVICE_STATE, JSON.stringify(this.state));
         }
         let ok = 0;

@@ -141,7 +141,7 @@ sudo systemctl restart funf-relay
 
 | 操作 | 说明 |
 |------|------|
-| **拖动滑块** | 实时调节吮吸/震动/电流/入体强度 (0-100) |
+| **拖动滑块** | 实时调节吮吸/震动/电流强度 (0-100)；产品所称入体与震动为同一功能 |
 | **M1-M4 按钮** | 切换每路的工作模式 |
 | **预设按钮** | 一键切换：温柔/日常/激烈/全停 |
 | **急停** | 全部归零 |
@@ -292,8 +292,7 @@ DevEco Studio 通过 USB 连接手机，一键部署调试。
 "functions": {
     "suction":   {"mode1": "0x07", "mode2": "0x08"},
     "vibration": {"mode1": "0x01", "mode2": "0x02"},
-    "electric":  {"mode1": "0x03", "mode2": "0x04"},
-    "insertion": {"mode1": null,   "mode2": null}
+    "electric":  {"mode1": "0x03", "mode2": "0x04"}
 }
 ```
 

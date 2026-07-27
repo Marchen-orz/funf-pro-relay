@@ -105,11 +105,11 @@ def build_stop_frames():
 
 
 def build_all_frames(state):
-    """根据一个 state dict {suction,vibration,electric,insertion, *_mode} 构建所有功能的帧列表。
+    """根据一个 state dict {suction,vibration,electric, *_mode} 构建所有功能的帧列表。
     逐功能一对通道发包，严格遵守 per_function_pair。
     """
     frames = []
-    for fn in ("suction", "vibration", "electric", "insertion"):
+    for fn in ("suction", "vibration", "electric"):
         inten = state.get(fn, 0)
         mode = state.get(f"{fn}_mode", 1)
         f = build_control_frame(fn, inten, mode)

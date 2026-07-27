@@ -59,8 +59,8 @@ class RelayService : Service() {
         var onBleState: ((String, Boolean) -> Unit)? = null
         /** 电池电量：(百分比 0-100, null=不支持) */
         var onBatteryLevel: ((Int?) -> Unit)? = null
-        /** 当前设备强度：(吮吸, 震动, 电流, 入体) */
-        var onDeviceState: ((Int, Int, Int, Int) -> Unit)? = null
+        /** 当前设备强度：(吮吸, 震动, 电流) */
+        var onDeviceState: ((Int, Int, Int) -> Unit)? = null
     }
 
     private val tag = "FunfRelay"
@@ -120,7 +120,6 @@ class RelayService : Service() {
         "suction" to (0x07 to 0x08),
         "vibration" to (0x01 to 0x02),
         "electric" to (0x03 to 0x04)
-        // "insertion" to (0x?? to 0x??)  // 入体 待抓包
     )
 
     private fun initFrame(): ByteArray = byteArrayOf(
@@ -316,7 +315,7 @@ class RelayService : Service() {
             "hello" -> {
                 val ds = m.optJSONObject("device_state")
                 if (ds != null) {
-                    uiLog("远端同步: 吮${ds.optInt("suction")} 震${ds.optInt("vibration")} 电${ds.optInt("electric")} 入${ds.optInt("insertion")}")
+                    uiLog("远端同步: 吮${ds.optInt("suction")} 震${ds.optInt("vibration")} 电${ds.optInt("electric")}")
                 }
                 reportBleStatus()
             }
@@ -328,15 +327,14 @@ class RelayService : Service() {
                 val s = state?.optInt("suction", 0) ?: 0
                 val v = state?.optInt("vibration", 0) ?: 0
                 val e = state?.optInt("electric", 0) ?: 0
-                val i = state?.optInt("insertion", 0) ?: 0
-                onDeviceState?.invoke(s, v, e, i)
+                onDeviceState?.invoke(s, v, e)
                 var ok = 0
                 for (idx in 0 until frames.length()) {
                     val hex = frames.getString(idx)
                     val bytes = hexToBytes(hex)
                     if (writeFrameToBle(bytes)) ok++
                 }
-                uiLog("指令: 吮$s 震$v 电$e 入$i · ${ok}/${frames.length()}帧")
+                uiLog("指令: 吮$s 震$v 电$e · ${ok}/${frames.length()}帧")
                 try {
                     ws?.send(JSONObject()
                         .put("type", "command_result")

@@ -425,11 +425,6 @@
             <input id="electricRange" class="control-input" type="range" min="0" max="100" value="0" data-function="electric">
             <div class="mode-control" data-function="electric"><button class="active" data-mode="1">M1</button><button data-mode="2">M2</button><button data-mode="3">M3</button><button data-mode="4">M4</button></div>
           </section>
-          <section class="control-card" data-function="insertion">
-            <div class="control-card-head"><h3>入体</h3><span><b id="insertionValue" class="control-value">0</b>/100</span></div>
-            <input id="insertionRange" class="control-input" type="range" min="0" max="100" value="0" data-function="insertion">
-            <div class="mode-control" data-function="insertion"><button class="active" data-mode="1">M1</button><button data-mode="2">M2</button><button data-mode="3">M3</button><button data-mode="4">M4</button></div>
-          </section>
         </div>
 
         <button id="emergencyStopButton" class="stop-button control-action" type="button" disabled>紧急停止</button>
@@ -590,8 +585,8 @@ let vaultData = null;
 let feedbackReports = [];
 
 const controlState = {
-  suction: 0, vibration: 0, electric: 0, insertion: 0,
-  suction_mode: 1, vibration_mode: 1, electric_mode: 1, insertion_mode: 1
+  suction: 0, vibration: 0, electric: 0,
+  suction_mode: 1, vibration_mode: 1, electric_mode: 1
 };
 
 async function api(path, options = {}) {
@@ -881,7 +876,7 @@ function setControlsEnabled(enabled) {
 
 function syncState(state) {
   if (!state) return;
-  ["suction", "vibration", "electric", "insertion"].forEach((name) => {
+  ["suction", "vibration", "electric"].forEach((name) => {
     if (state[name] !== undefined) controlState[name] = Number(state[name]) || 0;
     if (state[`${name}_mode`] !== undefined) controlState[`${name}_mode`] = Number(state[`${name}_mode`]) || 1;
     $(`#${name}Range`).value = controlState[name];
@@ -893,7 +888,7 @@ function syncState(state) {
 function sendControlState() { sendSocket({type: "command", state: controlState}); }
 
 function zeroControls() {
-  ["suction", "vibration", "electric", "insertion"].forEach((name) => controlState[name] = 0);
+  ["suction", "vibration", "electric"].forEach((name) => controlState[name] = 0);
   syncState(controlState);
 }
 

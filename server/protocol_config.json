@@ -1,5 +1,5 @@
 {
-  "_comment": "啵啵贝 Pro 协议适配层。已验证：吮吸(07/08)✓ 震动(01/02)✓ 电流(03/04)待确认 入体(null)待抓包",
+  "_comment": "啵啵贝 Pro 协议适配层。已验证：吮吸(07/08)✓ 震动(01/02)✓ 电流(03/04)待确认；产品所称入体与震动为同一功能",
   "_comment2": "Pro 通道与旧版一致！2026-07-12 探测确认",
 
   "device": {
@@ -30,15 +30,7 @@
   "functions": {
     "suction":     {"name": "吮吸",   "mode1": "0x07", "mode2": "0x08", "supports_mode": true},
     "vibration":   {"name": "震动",   "mode1": "0x01", "mode2": "0x02", "supports_mode": true},
-    "electric":    {"name": "微电流", "mode1": "0x03", "mode2": "0x04", "supports_mode": true},
-    "insertion": {
-      "_comment": "入体模块 —— Pro 新增。mode1/mode2 待抓包后填入；null 表示暂不发送",
-      "name": "入体",
-      "mode1": null,
-      "mode2": null,
-      "supports_mode": true,
-      "intensity_range": [0, 100]
-    }
+    "electric":    {"name": "微电流", "mode1": "0x03", "mode2": "0x04", "supports_mode": true}
   },
 
   "init_sequence": {
@@ -62,9 +54,9 @@
 
   "presets": {
     "_comment": "预设场景，网页和 AI 都可调用",
-    "calm":    {"name": "温柔", "suction": 20, "vibration": 20, "electric": 0,  "insertion": 10},
-    "normal":  {"name": "日常", "suction": 40, "vibration": 40, "electric": 10, "insertion": 30},
-    "intense": {"name": "激烈", "suction": 70, "vibration": 70, "electric": 30, "insertion": 60},
-    "stop":    {"name": "全停", "suction": 0,  "vibration": 0,  "electric": 0,  "insertion": 0}
+    "calm":    {"name": "温柔", "suction": 20, "vibration": 20, "electric": 0},
+    "normal":  {"name": "日常", "suction": 40, "vibration": 40, "electric": 10},
+    "intense": {"name": "激烈", "suction": 70, "vibration": 70, "electric": 30},
+    "stop":    {"name": "全停", "suction": 0,  "vibration": 0,  "electric": 0}
   }
 }

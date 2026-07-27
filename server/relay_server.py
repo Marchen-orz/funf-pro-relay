@@ -48,6 +48,7 @@ PASSWORD_ITERATIONS = 310_000
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_.-]{3,32}$")
 FEEDBACK_CATEGORIES = {"connection", "device", "account", "feature", "other"}
 FEEDBACK_STATUSES = {"open", "in_progress", "resolved"}
+CONTROL_FUNCTIONS = ("suction", "vibration", "electric")
 FEEDBACK_SUBMISSIONS: Dict[str, list[float]] = {}
 
 
@@ -492,11 +493,9 @@ class Hub:
             "suction": 0,
             "vibration": 0,
             "electric": 0,
-            "insertion": 0,
             "suction_mode": 1,
             "vibration_mode": 1,
             "electric_mode": 1,
-            "insertion_mode": 1,
             "last_command_at": 0,
             "last_command_result": None,
         }
@@ -587,11 +586,25 @@ def list_devices(user: Dict[str, Any], session_token: str = "") -> list[Dict[str
 
 def build_dispatch_from_state(state: Dict[str, Any]) -> list[str]:
     frames = []
-    for function in ("suction", "vibration", "electric", "insertion"):
+    for function in CONTROL_FUNCTIONS:
         frame = build_control_frame(function, state.get(function, 0), state.get(f"{function}_mode", 1))
         if frame is not None:
             frames.append(frame.hex())
     return frames
+
+
+def normalize_control_state(state: Dict[str, Any]) -> Dict[str, Any]:
+    normalized: Dict[str, Any] = {}
+    for function in CONTROL_FUNCTIONS:
+        normalized[function] = state.get(function, 0)
+        normalized[f"{function}_mode"] = state.get(f"{function}_mode", 1)
+
+    # Older clients exposed "insertion" as a separate control. It was an alias
+    # for vibration, so preserve those clients without forwarding a fourth channel.
+    if state.get("insertion") and not state.get("vibration"):
+        normalized["vibration"] = state["insertion"]
+        normalized["vibration_mode"] = state.get("insertion_mode", normalized["vibration_mode"])
+    return normalized
 
 
 async def dispatch_state(hub: Hub, state: Dict[str, Any], source: str = "controller") -> Dict[str, Any]:
@@ -599,16 +612,17 @@ async def dispatch_state(hub: Hub, state: Dict[str, Any], source: str = "control
         raise HTTPException(503, "设备离线")
     if not hub.acquire_lock("controller"):
         raise HTTPException(423, "控制锁由另一端持有")
+    state = normalize_control_state(state)
     frames = build_dispatch_from_state(state)
     timestamp = now()
     hub.log_command({"at": timestamp, "source": source, "state": state, "frames": frames})
     await hub.device.send({"type": "command", "state": state, "frames": frames, "ts": timestamp})
-    for key in ("suction", "vibration", "electric", "insertion"):
+    for key in CONTROL_FUNCTIONS:
         hub.device_state[key] = state.get(key, 0)
         if f"{key}_mode" in state:
             hub.device_state[f"{key}_mode"] = state[f"{key}_mode"]
     hub.device_state["last_command_at"] = timestamp
-    return {"frames_sent": len(frames), "state": {key: state.get(key, 0) for key in ("suction", "vibration", "electric", "insertion")}}
+    return {"frames_sent": len(frames), "state": {key: state.get(key, 0) for key in CONTROL_FUNCTIONS}}
 
 
 @app.on_event("startup")
@@ -1142,11 +1156,9 @@ async def legacy_apply_preset(name: str, request: Request) -> Dict[str, Any]:
         "suction": preset.get("suction", 0),
         "vibration": preset.get("vibration", 0),
         "electric": preset.get("electric", 0),
-        "insertion": preset.get("insertion", 0),
         "suction_mode": 1,
         "vibration_mode": 1,
         "electric_mode": 1,
-        "insertion_mode": 1,
     }
     return {"ok": True, **await dispatch_state(get_hub("legacy"), state, source="preset:" + name)}
 
@@ -1295,7 +1307,7 @@ async def websocket_loop(ws: WebSocket, role: str) -> None:
                     hub.log_command({"at": timestamp, "source": "stop", "frames": frames})
                     if hub.device and hub.device.alive:
                         await hub.device.send({"type": "stop", "frames": frames, "ts": timestamp})
-                    for key in ("suction", "vibration", "electric", "insertion"):
+                    for key in CONTROL_FUNCTIONS:
                         hub.device_state[key] = 0
                     hub.device_state["last_command_at"] = timestamp
                     await peer.send({"type": "stop_ack", "ok": True})
@@ -1309,9 +1321,9 @@ async def websocket_loop(ws: WebSocket, role: str) -> None:
                     preset = get_config().get("presets", {}).get(name)
                     if preset and not str(name).startswith("_"):
                         state = {
-                            **{key: 0 for key in ("suction", "vibration", "electric", "insertion")},
+                            **{key: 0 for key in CONTROL_FUNCTIONS},
                             **preset,
-                            **{f"{key}_mode": 1 for key in ("suction", "vibration", "electric", "insertion")},
+                            **{f"{key}_mode": 1 for key in CONTROL_FUNCTIONS},
                         }
                         result = await dispatch_state(hub, state, source="preset:" + str(name))
                         await peer.send({"type": "command_ack", "ok": True, **result})
@@ -1337,7 +1349,7 @@ async def websocket_loop(ws: WebSocket, role: str) -> None:
                     if hub.controller:
                         await hub.controller.send({"type": "command_result", **message})
                 elif message_type == "emergency_stop":
-                    for key in ("suction", "vibration", "electric", "insertion"):
+                    for key in CONTROL_FUNCTIONS:
                         hub.device_state[key] = 0
                     hub.release_lock()
                     if hub.controller:

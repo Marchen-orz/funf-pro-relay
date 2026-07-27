@@ -170,8 +170,7 @@ cd android/FunfRelayApp && ./gradlew assembleDebug
   "functions": {
     "suction":   {"mode1": "0x07", "mode2": "0x08"},
     "vibration": {"mode1": "0x01", "mode2": "0x02"},
-    "electric":  {"mode1": "0x03", "mode2": "0x04"},
-    "insertion": {"mode1": null,   "mode2": null}
+    "electric":  {"mode1": "0x03", "mode2": "0x04"}
   }
 }
 ```
@@ -185,7 +184,7 @@ cd android/FunfRelayApp && ./gradlew assembleDebug
 - `get_status` 读的是服务端缓存状态，非设备实时遥测
 - 协议无加密，BLE 范围内任何设备均可连接
 - 每个设备通道仍限制为一个 controller 和一个 device；服务可同时承载多个相互隔离的设备通道
-- Pro 的"入体"模块协议尚未逆向
+- Pro 没有独立“入体”模块；产品所称入体与震动为同一功能，系统统一使用震动通道
 
 ---
 

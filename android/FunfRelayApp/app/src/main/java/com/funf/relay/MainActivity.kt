@@ -158,8 +158,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        RelayService.onDeviceState = { s, v, e, i ->
-            runOnUiThread { tvIntensity.text = "吮$s 震$v 电$e 入$i" }
+        RelayService.onDeviceState = { s, v, e ->
+            runOnUiThread { tvIntensity.text = "吮$s 震$v 电$e" }
         }
 
         RelayService.onBatteryLevel = { level ->

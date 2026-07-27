@@ -47,6 +47,22 @@ def main() -> None:
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import relay_server
 
+        assert set(relay_server.get_config()["functions"]) == {
+            "suction", "vibration", "electric"
+        }
+        assert "insertion" not in relay_server.Hub("test").device_state
+        normalized = relay_server.normalize_control_state(
+            {"vibration": 25, "vibration_mode": 2, "insertion": 90}
+        )
+        assert normalized["vibration"] == 25 and normalized["vibration_mode"] == 2
+        assert "insertion" not in normalized
+        legacy_normalized = relay_server.normalize_control_state(
+            {"vibration": 0, "vibration_mode": 1, "insertion": 40, "insertion_mode": 3}
+        )
+        assert legacy_normalized["vibration"] == 40
+        assert legacy_normalized["vibration_mode"] == 3
+        assert "insertion" not in legacy_normalized
+
         with TestClient(relay_server.app, base_url="https://testserver") as client:
             login = client.post(
                 "/api/login", json={"username": "admin", "password": ADMIN_PASSWORD}
