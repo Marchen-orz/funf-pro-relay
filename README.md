@@ -205,3 +205,5 @@ MIT — 见 [LICENSE](LICENSE)。
 - 临时共享控制者：**[SHARED_CONTROLLER_GUIDE.md](SHARED_CONTROLLER_GUIDE.md)**
 - 管理员：**[ADMIN_GUIDE.md](ADMIN_GUIDE.md)**
 - 服务器部署、协议配置、BLE 抓包和开发维护，见 **[USAGE_MANUAL.md](USAGE_MANUAL.md)**。
+
+给我小猫做的。
