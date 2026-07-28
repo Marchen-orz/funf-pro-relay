@@ -1,5 +1,7 @@
 # FUNF 啵啵贝 Pro · 远程中继系统
 
+[![Tests](https://github.com/zaoan0/funf-pro-relay/actions/workflows/tests.yml/badge.svg)](https://github.com/zaoan0/funf-pro-relay/actions/workflows/tests.yml)
+
 异地情侣远程控制啵啵贝 Pro（蓝牙名 `SOSEXY`）的开源方案。
 
 **非官方项目**，基于社区逆向协议，与 FUNF 官方无关联。
@@ -203,6 +205,7 @@ MIT — 见 [LICENSE](LICENSE)。
 - 设备持有者（Android App）：**[DEVICE_HOLDER_GUIDE.md](DEVICE_HOLDER_GUIDE.md)**
 - 临时共享控制者：**[SHARED_CONTROLLER_GUIDE.md](SHARED_CONTROLLER_GUIDE.md)**
 - 管理员：**[ADMIN_GUIDE.md](ADMIN_GUIDE.md)**
+- 自动测试范围、结果与已知缺口：**[TEST_REPORT.md](TEST_REPORT.md)**
 - 服务器部署、协议配置、BLE 抓包和开发维护，见 **[USAGE_MANUAL.md](USAGE_MANUAL.md)**。
 
 感谢 Linux.do 社区提供的知识以及技巧。
