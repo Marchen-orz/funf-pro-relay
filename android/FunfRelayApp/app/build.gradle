@@ -2,6 +2,9 @@
 apply plugin: "com.android.application"
 apply plugin: "kotlin-android"
 
+// 正式版签名通过环境变量注入（CI 中来自 GitHub Secrets）
+def releaseKeystore = System.getenv("KEYSTORE_FILE")
+
 android {
     namespace "com.funf.relay"
     compileSdk 34
@@ -12,9 +15,22 @@ android {
         versionCode 1
         versionName "1.0.0"
     }
+    signingConfigs {
+        release {
+            if (releaseKeystore) {
+                storeFile file(releaseKeystore)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
+            if (releaseKeystore) {
+                signingConfig signingConfigs.release
+            }
         }
     }
     compileOptions {
